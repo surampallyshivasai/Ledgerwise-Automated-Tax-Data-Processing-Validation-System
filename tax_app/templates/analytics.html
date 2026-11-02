@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Tax analytics | Ledgerwise{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow"><a href="{{ url_for('main.batch_detail', batch_id=batch.id) }}">BATCH #{{ batch.id }}</a> / ANALYTICS</p><h1>Financial & tax analytics</h1><p class="muted">Descriptive estimates from transaction data, not tax-return calculations.</p></div></div>
+<div class="alert alert-warning"><b>Illustrative only.</b> Taxable income and effective rate below are simplified data indicators. They do not apply federal, state, or local tax rules and are not estimates of actual US tax liability. Consult a qualified tax professional.</div>
+<div class="alert alert-light border">Amounts are summed from source values without foreign-exchange conversion. Batches containing multiple currencies are not directly comparable.</div>
+<div class="row g-3 metric-grid mb-4">
+ {% for label,value in [("Total revenue",analytics.revenue),("Total expenses",analytics.expenses),("Recorded tax amount",analytics.tax_amount),("Income indicator",analytics.taxable_income_estimate)] %}
+ <div class="col-6 col-xl-3"><div class="metric-card"><span>{{ label }}</span><strong>${{ "{:,.2f}".format(value) }}</strong><small>Illustrative aggregation</small></div></div>{% endfor %}
+</div>
+<div class="row g-3">
+ <div class="col-lg-7"><div class="panel chart-panel"><div class="panel-heading"><div><h3>Monthly revenue</h3><span>Transaction date grouped by month</span></div></div><canvas id="monthlyChart" height="110"></canvas></div></div>
+ <div class="col-lg-5"><div class="panel chart-panel"><div class="panel-heading"><div><h3>Recorded tax amount by category</h3><span>Source values, not calculated liability</span></div></div><canvas id="categoryChart" height="180"></canvas></div></div>
+ <div class="col-lg-7"><div class="panel chart-panel"><div class="panel-heading"><div><h3>Recorded tax amount by entity</h3><span>Source values grouped by entity</span></div></div><canvas id="entityChart" height="100"></canvas></div></div>
+ <div class="col-lg-5"><div class="panel"><h3>Effective tax rate indicator</h3><strong class="analytics-rate">{{ "%.2f"|format(analytics.effective_tax_rate_estimate) }}%</strong><p class="muted small">Recorded tax amount divided by recorded revenue. Not a statutory or effective tax rate.</p></div></div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script><script>
+const opts={responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#e7e5df'}}}};
+new Chart(document.getElementById('monthlyChart'),{type:'line',data:{labels:{{ analytics.month_labels|tojson }},datasets:[{data:{{ analytics.month_values|tojson }},borderColor:'#31594f',backgroundColor:'rgba(49,89,79,.08)',fill:true,tension:.2}]},options:opts});
+new Chart(document.getElementById('categoryChart'),{type:'doughnut',data:{labels:{{ analytics.category_labels|tojson }},datasets:[{data:{{ analytics.category_values|tojson }},backgroundColor:['#31594f','#397460','#b58146','#78876f','#a56855']}]},options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
+new Chart(document.getElementById('entityChart'),{type:'bar',data:{labels:{{ analytics.entity_labels|tojson }},datasets:[{data:{{ analytics.entity_values|tojson }},backgroundColor:'#718a72',borderRadius:2}]},options:opts});
+</script>{% endblock %}

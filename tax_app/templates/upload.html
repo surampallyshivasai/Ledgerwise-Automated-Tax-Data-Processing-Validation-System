@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Upload data | Ledgerwise{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">DATA INTAKE</p><h1>Upload financial data</h1><p class="muted">Original files are retained unchanged; processing creates a separate cleaned copy.</p></div></div>
+<div class="row g-4">
+ <div class="col-lg-7"><div class="panel upload-panel">
+   <h2>Select a source file</h2><p class="muted">Supported file types: CSV and Excel (.xlsx). Maximum file size: {{ (config.MAX_CONTENT_LENGTH / 1024 / 1024)|round|int }} MB.</p>
+   <form method="post" enctype="multipart/form-data">
+     {{ form.hidden_tag() }}
+     <label class="drop-area" for="file"><span class="upload-icon"><svg><use href="#icon-upload"/></svg></span><strong>Choose a financial dataset</strong><small>Browse to select CSV or XLSX file</small>{{ form.file(class="form-control mt-3", id="file", accept=".csv,.xlsx") }}</label>
+     {% for error in form.file.errors %}<div class="text-danger small mt-2">{{ error }}</div>{% endfor %}
+     {{ form.submit(class="btn btn-primary mt-4") }}
+   </form>
+ </div></div>
+ <div class="col-lg-5"><div class="panel">
+   <h3>Expected fields</h3><p class="muted">Header matching is case-insensitive; spaces and punctuation are normalized.</p>
+   <div class="field-list">{% for field in ["Transaction ID","Transaction Date","Entity Name","Department","Revenue","Expenses","Tax Category","Tax Amount","Currency","Transaction Status"] %}<span>{{ field }}</span>{% endfor %}</div>
+   <div class="alert alert-light border mt-4 mb-0"><b>Preserving source data</b><br><span class="small">No original values are overwritten. Validation issues are reported with suggested corrections for human review.</span></div>
+ </div></div>
+</div>
+{% endblock %}

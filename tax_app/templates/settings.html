@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Settings | Ledgerwise{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">WORKSPACE</p><h1>Settings</h1><p class="muted">Runtime and data-handling information for this deployment.</p></div></div>
+<div class="row g-3">
+ <div class="col-lg-6"><div class="panel"><h3>Processing limits</h3><div class="summary-list"><div><span>Maximum upload size</span><b>{{ (config.MAX_CONTENT_LENGTH / 1024 / 1024)|round|int }} MB</b></div><div><span>Maximum rows per file</span><b>100,000</b></div><div><span>Supported formats</span><b>CSV, XLSX</b></div><div><span>Timezone used in reports</span><b>UTC</b></div></div></div></div>
+ <div class="col-lg-6"><div class="panel"><h3>Validation rules</h3><p class="muted">Toggle rules for future uploads. Existing batch results are not recalculated.</p>
+ <form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+ {% for rule in rules %}<label class="rule-toggle"><span><b>{{ rule.label }}</b><small>{{ rule.category }} · {{ rule.severity|title }} severity</small></span><input type="checkbox" name="rule_{{ rule.id }}" {% if rule.enabled %}checked{% endif %}></label>{% else %}<p class="small muted">Run <code>flask --app run.py init-db</code> to initialize validation rules.</p>{% endfor %}
+ {% if rules %}<button class="btn btn-primary mt-3" type="submit">Save validation settings</button>{% endif %}</form></div></div>
+ <div class="col-12"><div class="panel"><h3>Data protection</h3><p class="muted mb-0">Original files are stored separately and never overwritten by cleaning. Database connection, session key, upload location, and file-size limit are configured through environment variables. Protect the upload directory and database with deployment-level access controls, backups, and retention policies.</p></div></div>
+</div>
+{% endblock %}

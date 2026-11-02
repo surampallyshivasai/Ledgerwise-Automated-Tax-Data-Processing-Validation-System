@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Validation results | Ledgerwise{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow"><a href="{{ url_for('main.batch_detail', batch_id=batch.id) }}">BATCH #{{ batch.id }}</a> / EXCEPTIONS</p><h1>Validation results</h1><p class="muted">{{ errors.total }} validation exceptions across {{ batch.invalid_records }} records.</p></div><a class="btn btn-outline-primary" href="{{ url_for('main.download_report', batch_id=batch.id, report_type='csv') }}">Download exceptions CSV</a></div>
+<div class="panel">
+ <div class="table-tools"><input id="tableSearch" class="form-control search-input" type="search" placeholder="Search visible exceptions…"><span class="muted small">Showing {{ errors.items|length }} of {{ errors.total }}</span></div>
+ <div class="table-responsive"><table id="resultsTable" class="table align-middle data-table"><thead><tr><th>Record ID</th><th>Column</th><th>Original value</th><th>Category</th><th>Description</th><th>Severity</th><th>Suggested correction</th></tr></thead><tbody>
+ {% for error in errors.items %}<tr><td>{{ error.record_id or "—" }}</td><td><code>{{ error.column_name }}</code></td><td>{{ error.original_value or "—" }}</td><td>{{ error.category|replace("_"," ")|title }}</td><td>{{ error.description }}</td><td><span class="severity severity-{{ error.severity }}">{{ error.severity|title }}</span></td><td>{{ error.suggested_correction }}</td></tr>{% else %}<tr><td colspan="7" class="text-center muted py-5">No validation exceptions for this batch.</td></tr>{% endfor %}
+ </tbody></table></div>
+ {% if errors.pages > 1 %}<nav class="p-3"><ul class="pagination mb-0">
+ {% for page in errors.iter_pages() %}{% if page %}<li class="page-item {{ 'active' if page == errors.page }}"><a class="page-link" href="{{ url_for('main.validation', batch_id=batch.id, page=page) }}">{{ page }}</a></li>{% else %}<li class="page-item disabled"><span class="page-link">…</span></li>{% endif %}{% endfor %}
+ </ul></nav>{% endif %}
+</div>
+{% endblock %}
+{% block scripts %}<script>
+document.getElementById('tableSearch').addEventListener('input',function(){const term=this.value.toLowerCase();document.querySelectorAll('#resultsTable tbody tr').forEach(row=>row.hidden=!row.innerText.toLowerCase().includes(term));});
+</script>{% endblock %}

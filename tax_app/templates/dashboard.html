@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Overview | Ledgerwise{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><p class="eyebrow">OVERVIEW</p><h1>Financial data dashboard</h1><p class="muted">Monitor processing quality and review your latest data batch.</p></div>
+  <a href="{{ url_for('main.upload') }}" class="btn btn-primary"><svg class="button-icon"><use href="#icon-add"/></svg> Upload financial data</a>
+</div>
+<div class="row g-3 metric-grid">
+  <div class="col-6 col-xl"><div class="metric-card"><span>Total records</span><strong>{{ "{:,}".format(totals.records) }}</strong><small>Last 8 uploads</small></div></div>
+  <div class="col-6 col-xl"><div class="metric-card"><span>Valid records</span><strong class="text-success">{{ "{:,}".format(totals.valid) }}</strong><small>Ready for review</small></div></div>
+  <div class="col-6 col-xl"><div class="metric-card"><span>Invalid records</span><strong class="text-danger">{{ "{:,}".format(totals.invalid) }}</strong><small>Require attention</small></div></div>
+  <div class="col-6 col-xl"><div class="metric-card"><span>Duplicate records</span><strong class="text-warning">{{ "{:,}".format(totals.duplicates) }}</strong><small>Duplicate IDs</small></div></div>
+  <div class="col-6 col-xl"><div class="metric-card"><span>Missing values</span><strong>{{ "{:,}".format(totals.missing) }}</strong><small>Across recent batches</small></div></div>
+</div>
+{% if latest %}
+<div class="section-title-row"><div><h2>Latest batch</h2><p class="muted mb-0">{{ latest.filename }} · {{ latest.uploaded_at.strftime("%b %d, %Y %H:%M") }}</p></div><a class="text-link" href="{{ url_for('main.batch_detail', batch_id=latest.id) }}">View batch</a></div>
+<div class="row g-3 mb-4">
+  <div class="col-lg-8"><div class="panel chart-panel"><div class="panel-heading"><div><h3>Revenue trend</h3><span>Monthly, based on normalized records</span></div></div><canvas id="trendChart" height="90"></canvas></div></div>
+  <div class="col-lg-4"><div class="panel chart-panel"><div class="panel-heading"><div><h3>Validation status</h3><span>{{ latest.valid_records }} of {{ latest.total_records }} records valid</span></div></div><canvas id="statusChart" height="170"></canvas></div></div>
+</div>
+<div class="row g-3 mb-4">
+  <div class="col-lg-6"><div class="panel chart-panel"><div class="panel-heading"><div><h3>Exception categories</h3><span>Latest batch</span></div></div><canvas id="categoryChart" height="130"></canvas></div></div>
+  <div class="col-lg-6"><div class="panel h-100">
+    <div class="panel-heading"><div><h3>Batch summary</h3><span>Processing quality</span></div><span class="status-pill {{ 'status-good' if latest.status == 'completed' else 'status-warn' }}">{{ latest.status|title }}</span></div>
+    <div class="summary-list"><div><span>Validation success rate</span><b>{{ "%.1f"|format(latest.valid_records / latest.total_records * 100 if latest.total_records else 0) }}%</b></div><div><span>Revenue source amounts (no FX conversion)</span><b>${{ "{:,.2f}".format(analytics.revenue if analytics else 0) }}</b></div><div><span>Exception records</span><b>{{ latest.invalid_records }}</b></div></div>
+    <a class="btn btn-outline-primary mt-3" href="{{ url_for('main.batch_detail', batch_id=latest.id) }}">Review batch</a>
+  </div></div>
+</div>
+{% else %}
+<div class="empty-state panel"><div class="empty-icon"><svg><use href="#icon-empty"/></svg></div><p class="eyebrow">NO DATASETS YET</p><h2>Start with a financial data file</h2><p>Upload a CSV or Excel file to review normalized records, validation exceptions, and source totals.</p><a class="btn btn-primary" href="{{ url_for('main.upload') }}">Upload financial data</a></div>
+{% endif %}
+<div class="panel">
+  <div class="panel-heading"><div><h3>Recent processing history</h3><span>Most recent uploads</span></div><a class="text-link" href="{{ url_for('main.history') }}">View all uploads</a></div>
+  {% if batches %}<div class="table-responsive"><table class="table align-middle data-table"><thead><tr><th>File</th><th>Processed</th><th>Records</th><th>Valid</th><th>Invalid</th><th>Status</th></tr></thead><tbody>
+  {% for batch in batches %}<tr><td><a href="{{ url_for('main.batch_detail', batch_id=batch.id) }}" class="table-link">{{ batch.filename }}</a></td><td>{{ batch.uploaded_at.strftime("%b %d, %Y") }}</td><td>{{ "{:,}".format(batch.total_records) }}</td><td class="text-success">{{ batch.valid_records }}</td><td class="text-danger">{{ batch.invalid_records }}</td><td><span class="status-pill {{ 'status-good' if batch.status == 'completed' else 'status-warn' }}">{{ batch.status|title }}</span></td></tr>{% endfor %}
+  </tbody></table></div>{% else %}<p class="muted p-3">No processing activity yet.</p>{% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+{% if latest and analytics %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+const commonOptions={responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#e7e5df'},ticks:{maxTicksLimit:5}}}};
+new Chart(document.getElementById('trendChart'),{type:'line',data:{labels:{{ analytics.month_labels|tojson }},datasets:[{data:{{ analytics.month_values|tojson }},borderColor:'#31594f',backgroundColor:'rgba(49,89,79,.08)',fill:true,tension:.2,pointRadius:2}]},options:commonOptions});
+new Chart(document.getElementById('statusChart'),{type:'doughnut',data:{labels:['Valid','Invalid'],datasets:[{data:[{{ latest.valid_records }},{{ latest.invalid_records }}],backgroundColor:['#397460','#bd6254'],borderWidth:0}]},options:{cutout:'72%',plugins:{legend:{position:'bottom'}}}});
+new Chart(document.getElementById('categoryChart'),{type:'bar',data:{labels:{{ categories.keys()|list|tojson }},datasets:[{data:{{ categories.values()|list|tojson }},backgroundColor:'#b58146',borderRadius:2}]},options:commonOptions});
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Processing history | Ledgerwise{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">AUDIT TRAIL</p><h1>Processing history</h1><p class="muted">Uploaded files and recorded processing activities.</p></div></div>
+<div class="panel mb-4"><div class="panel-heading"><div><h3>Uploaded datasets</h3><span>{{ batches.total }} total uploads</span></div></div>
+<div class="table-responsive"><table class="table align-middle data-table"><thead><tr><th>Filename</th><th>Upload date</th><th>Total records</th><th>Valid</th><th>Invalid</th><th>Duplicates</th><th>Status</th></tr></thead><tbody>
+{% for batch in batches.items %}<tr><td><a class="table-link" href="{{ url_for('main.batch_detail', batch_id=batch.id) }}">{{ batch.filename }}</a></td><td>{{ batch.uploaded_at.strftime("%b %d, %Y %H:%M UTC") }}</td><td>{{ "{:,}".format(batch.total_records) }}</td><td>{{ batch.valid_records }}</td><td>{{ batch.invalid_records }}</td><td>{{ batch.duplicate_records }}</td><td><span class="status-pill {{ 'status-good' if batch.status == 'completed' else 'status-warn' }}">{{ batch.status|title }}</span></td></tr>{% else %}<tr><td colspan="7" class="muted text-center py-4">No uploads recorded yet.</td></tr>{% endfor %}
+</tbody></table></div>
+{% if batches.pages > 1 %}<nav class="p-3"><ul class="pagination mb-0">{% for page in batches.iter_pages() %}{% if page %}<li class="page-item {{ 'active' if page == batches.page }}"><a class="page-link" href="{{ url_for('main.history', page=page) }}">{{ page }}</a></li>{% endif %}{% endfor %}</ul></nav>{% endif %}
+</div>
+<div class="panel"><div class="panel-heading"><div><h3>Recent activity</h3><span>Latest 50 events</span></div></div>
+<div class="table-responsive"><table class="table align-middle data-table"><thead><tr><th>Activity</th><th>Details</th><th>Timestamp</th></tr></thead><tbody>{% for activity in activities %}<tr><td>{{ activity.activity }}</td><td>{{ activity.details or "—" }}</td><td>{{ activity.created_at.strftime("%b %d, %Y %H:%M:%S UTC") }}</td></tr>{% else %}<tr><td colspan="3" class="muted text-center py-4">No activity recorded.</td></tr>{% endfor %}</tbody></table></div>
+</div>
+{% endblock %}

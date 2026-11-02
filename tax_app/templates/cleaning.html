@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Cleaning & processing | Ledgerwise{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow"><a href="{{ url_for('main.batch_detail', batch_id=batch.id) }}">BATCH #{{ batch.id }}</a> / CLEANED DATA</p><h1>Cleaning & processing</h1><p class="muted">Normalized output is stored separately. Original uploaded file and row values remain unchanged.</p></div><a class="btn btn-primary" href="{{ url_for('main.download_cleaned_data', batch_id=batch.id) }}">Download cleaned CSV</a></div>
+<div class="panel">
+ <div class="panel-heading"><div><h3>Cleaned transaction records</h3><span>{{ "{:,}".format(transactions.total) }} rows · page {{ transactions.page }} of {{ transactions.pages or 1 }}</span></div></div>
+ <div class="table-responsive"><table class="table align-middle data-table"><thead><tr><th>Source row</th><th>Status</th><th>Transaction ID</th><th>Date</th><th>Entity</th><th>Department</th><th>Revenue</th><th>Expenses</th><th>Tax category</th><th>Tax amount</th><th>Currency</th><th>Transaction status</th></tr></thead><tbody>
+ {% for row in transactions.items %}{% set data = row.cleaned_data %}<tr>
+ <td>{{ row.row_number }}</td><td><span class="severity {{ 'severity-low' if row.is_valid else 'severity-high' }}">{{ 'Valid' if row.is_valid else 'Exception' }}</span></td>
+ <td>{{ data.get('transaction_id') or "—" }}</td><td>{{ data.get('transaction_date') or "—" }}</td><td>{{ data.get('entity_name') or "—" }}</td><td>{{ data.get('department') or "—" }}</td>
+ <td>{{ data.get('revenue') if data.get('revenue') is not none else "—" }}</td><td>{{ data.get('expenses') if data.get('expenses') is not none else "—" }}</td>
+ <td>{{ data.get('tax_category') or "—" }}</td><td>{{ data.get('tax_amount') if data.get('tax_amount') is not none else "—" }}</td>
+ <td>{{ data.get('currency') or "—" }}</td><td>{{ data.get('transaction_status') or "—" }}</td>
+ </tr>{% else %}<tr><td colspan="12" class="muted text-center py-4">No normalized records are available.</td></tr>{% endfor %}
+ </tbody></table></div>
+ {% if transactions.pages > 1 %}<nav class="p-3"><ul class="pagination mb-0">{% for page in transactions.iter_pages() %}{% if page %}<li class="page-item {{ 'active' if page == transactions.page }}"><a class="page-link" href="{{ url_for('main.cleaning', batch_id=batch.id, page=page) }}">{{ page }}</a></li>{% endif %}{% endfor %}</ul></nav>{% endif %}
+</div>
+<p class="small muted mt-3">Whitespace is trimmed, headers are standardized, parseable dates use YYYY-MM-DD, and numeric values are normalized. Missing or invalid source values are shown as missing in cleaned columns and reported in validation results.</p>
+{% endblock %}

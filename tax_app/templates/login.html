@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Sign in | Ledgerwise{% endblock %}
+{% block login_content %}
+<section class="login-card">
+  <a class="brand login-brand" href="#"><span class="brand-mark"><svg class="brand-icon"><use href="#icon-ledger"/></svg></span><span>Ledgerwise<small>Tax operations</small></span></a>
+  <p class="eyebrow mt-5">WELCOME BACK</p>
+  <h1>Sign in to your workspace</h1>
+  <p class="muted">Sign in to review financial data processing and validation.</p>
+  <form method="post" class="mt-4">
+    {{ form.hidden_tag() }}
+    <label class="form-label" for="username">Username</label>
+    {{ form.username(class="form-control mb-3", id="username", autocomplete="username") }}
+    <label class="form-label" for="password">Password</label>
+    {{ form.password(class="form-control mb-4", id="password", autocomplete="current-password") }}
+    {{ form.submit(class="btn btn-primary w-100 py-2") }}
+  </form>
+  <div class="login-note">Administrator account is provisioned with the <code>flask init-db</code> command.</div>
+</section>
+{% endblock %}

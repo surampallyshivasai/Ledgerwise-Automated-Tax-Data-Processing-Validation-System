@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Reconciliation | Ledgerwise{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow"><a href="{{ url_for('main.batch_detail', batch_id=batch.id) }}">BATCH #{{ batch.id }}</a> / RECONCILIATION</p><h1>Financial reconciliation</h1><p class="muted">Raw source totals compared with normalized processed totals; no rows are deleted.</p></div>
+{% if result %}<span class="status-pill {{ 'status-good' if result.status == 'matched' else 'status-warn' }}">{{ result.status|title }}</span>{% endif %}</div>
+{% if result %}
+<div class="row g-3 mb-4">
+ {% for label, source, processed, diff in [("Revenue",result.source_revenue,result.processed_revenue,result.revenue_difference),("Expenses",result.source_expenses,result.processed_expenses,result.expense_difference)] %}
+ <div class="col-lg-6"><div class="panel"><h3>{{ label }} comparison</h3><div class="recon-values"><div><span>Source total</span><b>${{ "{:,.2f}".format(source) }}</b></div><div><span>Processed total</span><b>${{ "{:,.2f}".format(processed) }}</b></div><div><span>Difference</span><b class="{{ 'text-success' if diff == 0 else 'text-danger' }}">${{ "{:,.2f}".format(diff) }}</b></div></div></div></div>{% endfor %}
+</div>
+<div class="panel"><h3>Reconciliation summary</h3><div class="summary-list"><div><span>Transaction rows compared</span><b>{{ result.summary.transaction_rows }}</b></div><div><span>Records missing transaction IDs</span><b>{{ result.missing_transaction_count }}</b></div><div><span>Records with missing or duplicate IDs</span><b>{{ result.mismatched_transaction_count }}</b></div><div><span>Revenue difference</span><b>${{ "{:,.2f}".format(result.revenue_difference) }}</b></div><div><span>Expense difference</span><b>${{ "{:,.2f}".format(result.expense_difference) }}</b></div></div><p class="small muted mt-3 mb-0">{{ result.summary.method }}</p></div>
+{% else %}<div class="panel empty-state"><h2>No reconciliation result</h2><p class="muted">This batch has no completed processing result.</p></div>{% endif %}
+{% endblock %}

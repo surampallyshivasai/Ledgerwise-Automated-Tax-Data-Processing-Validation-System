@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Batch {{ batch.id }} | Ledgerwise{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">PROCESSING BATCH #{{ batch.id }}</p><h1>{{ batch.filename }}</h1><p class="muted">Uploaded {{ batch.uploaded_at.strftime("%B %d, %Y at %H:%M UTC") }}</p></div><a class="btn btn-outline-primary" href="{{ url_for('main.upload') }}">New upload</a></div>
+<div class="row g-3 mb-4">
+ {% for title, value, note in [("Total records",batch.total_records,"Rows processed"),("Valid records",batch.valid_records,"Passed all checks"),("Invalid records",batch.invalid_records,"One or more exceptions"),("Duplicate records",batch.duplicate_records,"Rows with repeated IDs")] %}
+ <div class="col-6 col-xl-3"><div class="metric-card"><span>{{ title }}</span><strong>{{ "{:,}".format(value) }}</strong><small>{{ note }}</small></div></div>{% endfor %}
+</div>
+<div class="panel mb-4"><div class="panel-heading"><div><h3>Processing workflow</h3><span>Review each output for this dataset</span></div><span class="status-pill {{ 'status-good' if batch.status == 'completed' else 'status-warn' }}">{{ batch.status|title }}</span></div>
+<div class="workflow-grid">
+ <a href="{{ url_for('main.cleaning', batch_id=batch.id) }}"><b>Cleaning & processing</b><span>Review normalized records separately</span><em>View cleaned data</em></a>
+ <a href="{{ url_for('main.validation', batch_id=batch.id) }}"><b>Validation results</b><span>{{ batch.invalid_records }} records with exceptions</span><em>Review exceptions</em></a>
+ <a href="{{ url_for('main.reconciliation', batch_id=batch.id) }}"><b>Reconciliation</b><span>{{ reconciliation.status|title if reconciliation else "Not available" }}</span><em>Compare totals</em></a>
+ <a href="{{ url_for('main.analytics', batch_id=batch.id) }}"><b>Tax analytics</b><span>Illustrative financial metrics</span><em>Explore analytics</em></a>
+</div></div>
+<div class="panel"><div class="panel-heading"><div><h3>Download reports</h3><span>Reports contain processing summary and exceptions</span></div></div>
+<div class="d-flex flex-wrap gap-2"><a class="btn btn-outline-primary" href="{{ url_for('main.download_report', batch_id=batch.id, report_type='xlsx') }}">Excel workbook</a><a class="btn btn-outline-primary" href="{{ url_for('main.download_report', batch_id=batch.id, report_type='csv') }}">CSV exception report</a><a class="btn btn-outline-primary" href="{{ url_for('main.download_report', batch_id=batch.id, report_type='pdf') }}">PDF summary</a></div>
+<p class="small muted mt-3 mb-0">Tax analytics are illustrative, are not official tax calculations, and should not be used to determine US tax liability.</p></div>
+{% endblock %}

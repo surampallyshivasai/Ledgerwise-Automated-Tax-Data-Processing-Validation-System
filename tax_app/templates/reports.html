@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Reports | Ledgerwise{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">DELIVERABLES</p><h1>Reports & downloads</h1><p class="muted">Generate structured reports from any completed or failed processing batch.</p></div></div>
+<div class="panel">
+ {% if batches %}<div class="table-responsive"><table class="table align-middle data-table"><thead><tr><th>Source file</th><th>Uploaded</th><th>Rows</th><th>Exceptions</th><th>Download</th></tr></thead><tbody>
+ {% for batch in batches %}<tr><td><a class="table-link" href="{{ url_for('main.batch_detail', batch_id=batch.id) }}">{{ batch.filename }}</a></td><td>{{ batch.uploaded_at.strftime("%b %d, %Y %H:%M") }}</td><td>{{ batch.total_records }}</td><td>{{ batch.invalid_records }}</td><td><div class="d-flex gap-2"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('main.download_report', batch_id=batch.id, report_type='xlsx') }}">XLSX</a><a class="btn btn-sm btn-outline-primary" href="{{ url_for('main.download_report', batch_id=batch.id, report_type='csv') }}">CSV</a><a class="btn btn-sm btn-outline-primary" href="{{ url_for('main.download_report', batch_id=batch.id, report_type='pdf') }}">PDF</a></div></td></tr>{% endfor %}
+ </tbody></table></div>{% else %}<div class="empty-state"><h2>No reports available</h2><p class="muted">Upload and process a dataset to generate reports.</p><a class="btn btn-primary" href="{{ url_for('main.upload') }}">Upload data</a></div>{% endif %}
+</div>
+<p class="small muted mt-3">CSV downloads contain validation exceptions. Excel workbooks include summary, validation, reconciliation, and cleaned-data sheets. PDFs contain a processing summary.</p>
+{% endblock %}
